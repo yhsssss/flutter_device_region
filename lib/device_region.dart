@@ -30,5 +30,6 @@ class DeviceRegion {
   static Future<String?> getSIMCountryCode() async =>
       await _channel.invokeMethod(
         'getSIMCountryCode',
+        'getAccessTechnology',
       );
 }
