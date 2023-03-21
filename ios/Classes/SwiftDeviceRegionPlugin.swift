@@ -22,7 +22,8 @@ public class SwiftDeviceRegionPlugin: NSObject, FlutterPlugin {
         } else if(call.method == "getAccessTechnology") {
             if #available(iOS 14.1, *) {
                 let radioAccessTechnologies = CTTelephonyNetworkInfo().serviceCurrentRadioAccessTechnology
-                let accessTechnology = radioAccessTechnologies?.first?.value ?? nil
+                print(radioAccessTechnologies)
+                let accessTechnology = radioAccessTechnologies?.first ?? nil
                 
                 result(accessTechnology)
             } else {
