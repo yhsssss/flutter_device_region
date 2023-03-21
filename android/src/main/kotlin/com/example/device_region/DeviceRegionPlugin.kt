@@ -42,6 +42,8 @@ class DeviceRegionPlugin: FlutterPlugin, MethodCallHandler {
     catch (e: Exception) {
       result.success(null)
     }
+    } else if (call.method == "getSIMCountryCode") {
+      result.success(null)
     } else {
       result.notImplemented()
     }
