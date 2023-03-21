@@ -1,6 +1,8 @@
 import Flutter
 import UIKit
 import CoreTelephony
+import SystemConfiguration
+import Foundation
 
 public class SwiftDeviceRegionPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -20,16 +22,50 @@ public class SwiftDeviceRegionPlugin: NSObject, FlutterPlugin {
                 result(nil)
             }
         } else if(call.method == "getAccessTechnology") {
-            if #available(iOS 14.1, *) {
-                let radioAccessTechnologies = CTTelephonyNetworkInfo().serviceCurrentRadioAccessTechnology
-                print(radioAccessTechnologies)
-                let accessTechnology = radioAccessTechnologies?.first ?? nil
-                
-                result(accessTechnology)
-            } else {
-                result(nil)
-            }
-            
+                guard let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, "www.google.com") else {
+                    result("NO INTERNET")
+                    return
+                }
+
+                var flags = SCNetworkReachabilityFlags()
+                SCNetworkReachabilityGetFlags(reachability, &flags)
+
+                let isReachable = flags.contains(.reachable)
+                let isWWAN = flags.contains(.isWWAN)
+
+                if #available(iOS 14.1, *) {
+                   if isReachable {
+                           if isWWAN {
+                               let networkInfo = CTTelephonyNetworkInfo()
+                               let carrierType = networkInfo.serviceCurrentRadioAccessTechnology
+
+                               guard let carrierTypeName = carrierType?.first?.value else {
+                                   result("UNKNOWN")
+                                   return
+                               }
+
+                               switch carrierTypeName {
+                                   case CTRadioAccessTechnologyGPRS, CTRadioAccessTechnologyEdge, CTRadioAccessTechnologyCDMA1x:
+                                       result("2G")
+                                       return
+                                   case CTRadioAccessTechnologyLTE:
+                                       result("4G")
+                                       return
+                                   default:
+                                       result("3G")
+                                       return
+                               }
+                           } else {
+                               result("WIFI")
+                               return
+                           }
+                       } else {
+                           result("NO INTERNET")
+                           return
+                       }
+                } else {
+                    result(nil)
+                }
         }
         else {
             result(FlutterMethodNotImplemented)
